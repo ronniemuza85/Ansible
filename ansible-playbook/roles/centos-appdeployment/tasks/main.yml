@@ -1,0 +1,17 @@
+---
+
+- name: Copying the contents of {{client}}.properties to RMS.properties
+  copy: src=/home/lms/jboss-4.2.3.GA/server/default/conf/RMS/{{client}}.properties  dest=/home/lms/jboss-4.2.3.GA/server/default/conf/RMS/RMS.properties remote_src=True
+
+- name: Copying the contents of {{client}}.properties to RMS_en.properties
+  copy: src=/home/lms/jboss-4.2.3.GA/server/default/conf/RMS/{{client}}_en.properties dest=/home/lms/jboss-4.2.3.GA/server/default/conf/RMS/RMS_en.properties remote_src=True
+
+
+- name: Copying the contents of {{client}}.properties to RMS_fr.properties
+  copy: src=/home/lms/jboss-4.2.3.GA/server/default/conf/RMS/{{client}}_fr.properties dest=/home/lms/jboss-4.2.3.GA/server/default/conf/RMS/RMS_fr.properties remote_src=True
+  when: client == "Benin"
+
+- name: Copy Client properties to Player Managment Properties
+  copy: src=/home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/PMS/{{client}}.properties dest=/home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/PMS/PlayerMgmt.properties remote_src=True      
+- name: Copy Client En to Management En        
+  copy: src=/home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/PMS/{{client}}_en dest=/home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/PMS/PlayerMgmt_en remote_src=True  

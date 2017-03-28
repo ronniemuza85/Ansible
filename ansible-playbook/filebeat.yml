@@ -1,0 +1,6 @@
+---
+- hosts: "{{target}}-filebeat"
+  user: stpl
+  become: yes
+  roles:
+  - filebeat

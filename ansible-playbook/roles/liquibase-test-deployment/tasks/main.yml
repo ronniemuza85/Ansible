@@ -1,0 +1,8 @@
+---
+ - name: Debug
+   debug: msg="Rachit"
+ - name: Base dir
+   debug: msg="{{basedir}}"
+ - command: "cp -r {{basedir}}/externalConfig/db /home/lms/"
+   
+

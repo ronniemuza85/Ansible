@@ -1,0 +1,8 @@
+---
+ - hosts: "{{target}}-all"
+   user: stpl
+   become: yes
+   roles:
+      - { role: Artifact-download}
+      - { role: liquibase-deployment}
+      - { role: Artifact-deployment}

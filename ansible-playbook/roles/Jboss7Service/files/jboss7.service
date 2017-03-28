@@ -1,0 +1,9 @@
+[Unit]
+Description=Jboss7
+After=network.target
+
+[Service]
+ExecStart=/home/lms/jboss-as-7.1.1.Final/bin/standalone.sh -b 0.0.0.0
+
+[Install]
+WantedBy=default.target

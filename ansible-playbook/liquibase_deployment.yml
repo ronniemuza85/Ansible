@@ -1,0 +1,9 @@
+---
+ - hosts: "{{target}}-liquibase"
+   user: stpl
+   become: yes
+   roles:      
+      - { role: liquibase-test-deployment}
+      - { role: liquibase-deployment}
+ 
+

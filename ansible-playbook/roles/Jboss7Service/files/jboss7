@@ -1,0 +1,68 @@
+#!/bin/bash
+start() {
+  echo -n "Starting $prog: "
+  JBOSS_PIDFILE=`ps -ef | grep "jboss-as-7.1.1.Final/bin/standalone.sh" | grep -v grep  | awk '{print$2}'`
+  if [[ ! -z $JBOSS_PIDFILE ]]; then
+    echo -n "$JBOSS_PIDFILE is already running"
+    echo
+    return 0
+  else
+   nohup /home/lms/jboss-as-7.1.1.Final/bin/standalone.sh -b 0.0.0.0 >/dev/null 2>&1 &
+  fi
+sleep 8
+  echo
+  return 0
+}
+
+stop() {
+  count=0
+  JBOSS_PIDFILE=`ps -ef | grep "jboss-as-7.1.1.Final/modules" | grep -v grep  | awk '{print$2}' | head -1`
+  echo -n $"Stopping: $JBOSS_PIDFILE: "
+  if [ $JBOSS_PIDFILE ]; then
+    kpid=$JBOSS_PIDFILE
+    kill -15 $kpid
+   sleep 5
+
+if  [ $JBOSS_PIDFILE ]; then
+         kpid=$JBOSS_PIDFILE
+         kill -9 $kpid
+      fi
+
+
+  fi
+  echo
+}
+########################################################################################################
+status () {
+JBOSS_PIDFILE=`ps -ef | grep "jboss-as-7.1.1.Final/bin/standalone.sh" | grep -v grep  | awk '{print$2}'`
+  if [[ ! -z $JBOSS_PIDFILE ]]; then
+    echo -n "$JBOSS_PIDFILE is running"
+    echo
+    return 0
+  else
+   echo -n "$JBOSS_PIDFILE jboss7 is stoped"
+   sleep 0
+  fi
+}
+#######################################################################################################
+case "$1" in
+  start)
+      start
+      ;;
+  stop)
+      stop
+      ;;
+  status)
+      status
+      ;;
+  restart)
+      $0 stop
+      $0 start
+      ;;
+  *)
+      ## If no parameters are given, print which are avaiable.
+      echo "Usage: $0 {start|stop|status|restart}"
+      exit 1
+      ;;
+esac
+

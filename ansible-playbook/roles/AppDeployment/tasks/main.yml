@@ -1,0 +1,84 @@
+---
+
+
+- name: Download Artifcat
+  get_url: url="http://{{NEXUS_URL}}/repository/{{RepoName}}/{{GroupId}}/{{ArtifactId}}/{{ReleaseVersion}}/{{FileName}}" dest=/home/lms/Deploy
+  when: remote=="no"
+
+- name: Download Artifcat to Jenkins
+  become: no
+  local_action: get_url url="http://{{NEXUS_URL}}/repository/{{RepoName}}/{{GroupId}}/{{ArtifactId}}/{{ReleaseVersion}}/{{FileName}}" dest=/tmp/
+  when: remote=="yes"
+
+- name: Copy Artifcat to Remote
+  copy: src=/tmp/{{FileName}} dest=/home/lms/Deploy
+  when: remote=="yes"
+
+
+- name: Remove Downloaded  Artifcat from Jenkins
+  become: no
+  local_action: file path="/tmp/{{FileName}}" state=absent
+  when: remote=="yes"
+
+- name: create Artifact dir
+  file:
+    path: "/home/lms/Deploy/{{FileName[0:-4]}}"
+    state: directory
+    mode: 0755
+- name: Unzip Artifact
+  unarchive:
+        src: "/home/lms/Deploy/{{FileName}}"
+        dest: "/home/lms/Deploy/{{FileName[0:-4]}}" 
+        remote_src: True
+- {role: liquibase_deployment, tags: ['liquibase_deployment']}
+
+- name: Update DGE War Name
+  replace:
+    dest: /home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/{{item}}/{{item}}.properties 
+    regexp: "^JBOSS_AS_DEPLOYMENT=*.*" 
+    replace: "JBOSS_AS_DEPLOYMENT={{FileName[0:-4]}}.war"
+  with_items:
+     - DGW
+     - PMS 
+  when:  ArtifactId == "DGE"
+- name: stop jboss4 service
+  service: name=jboss4 state=stopped
+  when: ArtifactId == "rms"
+- name: Remove old war
+  file: path="/home/lms/jboss-4.2.3.GA/server/default/deploy/{{ArtifactId}}*" state=absent
+  when:  ArtifactId == "rms"
+- name: Add new war   
+  copy: src="/home/lms/Deploy/{{FileName[0:-4]}}/app/{{FileName[0:-4]}}.war" dest="/home/lms/jboss-4.2.3.GA/server/default/deploy/" remote_src=true
+  when:  ArtifactId == "rms"
+- name: start jboss4 server
+  service: name=jboss4 state=started
+  when: ArtifactId == "rms"
+- name: Deploy Jboss7 if ArtifactId is DGE or SLE or DGW or PMS start Jboss7 service 
+  service: name=jboss7 state=started
+  when: ArtifactId == "DGE"  or ArtifactId == "sportslottery" or ArtifactId == "PMS" or ArtifactId == "DrawGameWeb"
+
+- name: perform hot deploy
+  shell: "rm -rf /home/lms/jboss-as-7.1.1.Final/standalone/deployments/{{ArtifactId}}*.*" 
+  when: ArtifactId == "DGE"  or ArtifactId == "sportslottery" or ArtifactId == "PMS" or ArtifactId == "DrawGameWeb"
+
+- name: Add new war
+  copy: src="/home/lms/Deploy/{{FileName[0:-4]}}/app/{{FileName[0:-4]}}.war" dest="/home/lms/jboss-as-7.1.1.Final/standalone/deployments/" remote_src=true
+  when: ArtifactId == "DGE"  or ArtifactId == "sportslottery" or ArtifactId == "PMS" or ArtifactId == "DrawGameWeb"
+    
+ #   command:
+#    when: ArtifactId ==
+
+ 
+
+
+
+
+#- fail:
+#   msg: "The system may not be provisioned according to the CMDB status."
+#  when: != "to-be-staged"
+#  register: mystaus
+#- debug: msg="{{mystatus}}"
+
+
+
+

@@ -1,0 +1,9 @@
+#####Connection Information#########
+databaseName=dge_ghana
+userName=root
+hostAddress=192.168.134.14
+password=skilrock
+
+GHANA-R6_DRAW_START_ID=0
+
+

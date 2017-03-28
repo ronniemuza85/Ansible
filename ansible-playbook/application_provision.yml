@@ -1,0 +1,56 @@
+---
+- hosts: "{{target}}-jre" 
+  user: stpl
+  become: yes
+  roles:
+    - centos-Jre7
+
+- hosts: "{{target}}-filebeat"
+  user: stpl
+  become: yes
+  roles:
+    - filebeat
+
+- hosts: "{{target}}-mysql"
+  user: stpl
+  become: yes
+  roles:
+    - mysql5.1
+
+- hosts: "{{target}}-nginx"
+  user: stpl
+  become: yes
+  roles:
+    - centos-nginx
+
+- hosts: "{{target}}-hardening"
+  user: stpl
+  become: yes
+  roles:
+    - server-hardening
+    
+- hosts: "{{target}}-jboss4"
+  user: stpl
+  become: yes
+  roles:
+    - centos-jboss4
+    - centos-jboss4-deployment 
+    - Jboss4Service
+- hosts: "{{target}}-jboss7"
+  user: stpl
+  become: yes
+  roles:
+    - centos-jboss7
+    - centos-jboss7-deployment
+    - Jboss7Service
+- hosts: "{{target}}-liquibase"
+  user: stpl
+  become: yes
+  roles:
+    - liquibase
+
+- hosts: "{{target}}-CreateDataBases"
+  user: stpl
+  become: yes
+  roles:
+    - CreateDataBases

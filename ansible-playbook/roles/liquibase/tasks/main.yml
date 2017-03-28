@@ -1,0 +1,49 @@
+ - name: create dirs
+   file:
+     path: /home/lms/Deploy/LIQUIBASE/{{ item }}
+     state: directory
+     mode: 0755
+   with_items: 
+      - [ rms, DGE, DrawGameWeb, PMS, sportslottery]
+ - name: copy liquibase tar to tmp
+   copy: src=roles/liquibase/files/Liquibase.tar.gz  dest=/tmp/
+ - name: Extract archive
+   unarchive: dest=/home/lms/Deploy/LIQUIBASE/{{item}}/ src=/tmp/Liquibase.tar.gz  copy=no
+   with_items: [ rms,DGE,DrawGameWeb, PMS, sportslottery]
+
+
+ - name: Edit db.xml update client name
+   command: sed -i s/client/"{{client}}"/g /home/lms/Deploy/LIQUIBASE/{{ item }}/Liquibase/db.xml 
+   with_items: [ rms, DGE, DrawGameWeb, PMS, sportslottery]
+ - name: replace db credentials in liquibase.properties for DGE
+   lineinfile: dest=/home/lms/Deploy/LIQUIBASE/DGE/Liquibase/liquibase.properties regexp={{ item.regexp }} line={{ item.line }}
+   with_items:
+           - { regexp: 'url=jdbc:mysql://localhost/*', line: 'url=jdbc:mysql://{{dgeDatabaseHost}}/{{dgeDatabaseName}}' }
+           - { regexp: 'username=*', line: 'username={{dgeDatabaseUsername}}' }
+           - { regexp: 'password=*', line: 'password={{dgeDatabasePassword}}' }
+
+
+ - name: replace db credentials in liquibase.properties for rms
+   lineinfile: dest=/home/lms/Deploy/LIQUIBASE/rms/Liquibase/liquibase.properties regexp={{ item.regexp }} line={{ item.line }}
+   with_items:
+           - { regexp: 'url=jdbc:mysql://localhost/*', line: 'url=jdbc:mysql://{{rmsDatabaseHost}}/{{rmsDatabaseName}}' }
+           - { regexp: 'username=*', line: 'username={{rmsDatabaseUsername}}' }
+           - { regexp: 'password=*', line: 'password={{rmsDatabasePassword}}' }
+ - name: replace db credentials in liquibase.properties for DrawGameWeb
+   lineinfile: dest=/home/lms/Deploy/LIQUIBASE/DrawGameWeb/Liquibase/liquibase.properties regexp={{ item.regexp }} line={{ item.line }}
+   with_items:
+           - { regexp: 'url=jdbc:mysql://localhost/*', line: 'url=jdbc:mysql://{{dgwDatabaseHost}}/{{dgwDatabaseName}}' }
+           - { regexp: 'username=*', line: 'username={{dgwDatabaseUsername}}' }
+           - { regexp: 'password=*', line: 'password={{dgwDatabasePassword}}' }
+ - name: replace db credentials in liquibase.properties for PMS
+   lineinfile: dest=/home/lms/Deploy/LIQUIBASE/PMS/Liquibase/liquibase.properties regexp={{ item.regexp }} line={{ item.line }}
+   with_items:
+           - { regexp: 'url=jdbc:mysql://localhost/*', line: 'url=jdbc:mysql://{{pmsDatabaseHost}}/{{pmsDatabaseName}}' }
+           - { regexp: 'username=*', line: 'username={{pmsDatabaseUsername}}' }
+           - { regexp: 'password=*', line: 'password={{pmsDatabasePassword}}' }
+ - name: replace db credentials in liquibase.properties for SportsLottery
+   lineinfile: dest=/home/lms/Deploy/LIQUIBASE/sportslottery/Liquibase/liquibase.properties regexp={{ item.regexp }} line={{ item.line }}
+   with_items:
+           - { regexp: 'url=jdbc:mysql://localhost/*', line: 'url=jdbc:mysql://{{sleDatabaseHost}}/{{sleDatabaseName}}' }
+           - { regexp: 'username=*', line: 'username={{sleDatabaseUsername}}' }
+           - { regexp: 'password=*', line: 'password={{sleDatabasePassword}}' }

@@ -1,0 +1,16 @@
+---
+- hosts: "{{target}}-payworldphp"
+  user: stpl
+  become: yes
+  tasks:
+   - name: yum install apache
+     yum: name=httpd state=present     
+#   - name: yum install php5.6
+#     debug: msg=install php5.6
+   - name: change permission for /var/www/html
+     command: "chown stpl /var/www/html"
+   - name: clone git repo
+     git: repo=git@192.168.126.99:PayWorld-PHP/pcpos.git dest=/var/www/html/pcpos
+     become: no
+    #accept_hostkey=yes
+

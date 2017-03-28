@@ -1,0 +1,7 @@
+---
+
+ - hosts: "{{target}}-db-create"
+   user: stpl
+   become: yes
+   roles: 
+     - CreateDataBases 

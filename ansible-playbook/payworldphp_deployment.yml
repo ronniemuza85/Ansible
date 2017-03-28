@@ -1,0 +1,27 @@
+---
+- hosts: "{{target}}-payworldphp"
+  user: stpl
+  become: no
+  tasks:
+  - name: 
+    file: path=/var/www/html/pcpos/config state=absent
+    become: yes
+
+  - name: moving config files
+    command: "cp -rf /var/www/html/pcpos/config-dev /var/www/html/pcpos/config"
+    when: target[-2:] == "QA"
+    become: yes
+  - name: pull latest code from git    
+    git: repo=git@192.168.126.99:PayWorld-PHP/pcpos.git dest=/var/www/html/pcpos clone=no update=yes version={{Branch_Name}}
+    become: no
+  - name:  Branch Name
+    debug: msg={{Branch_Name}}
+  - name : Change Config Files
+    file: path=/var/www/html/pcpos/config state=absent
+    become: yes
+  - name: moving config files
+    command: "cp -rf /var/www/html/pcpos/config-qa /var/www/html/pcpos/config"
+    when: target[-2:] == "QA"
+    become: yes
+
+   

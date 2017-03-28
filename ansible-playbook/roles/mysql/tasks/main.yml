@@ -1,0 +1,16 @@
+---
+  - name: Download mysql5.5
+    get_url: url=http://192.168.126.99:8087/repository/tools/MySQL-5.5.35-1.linux2.6.x86_64.rpm-bundle.tar.gz dest=/opt/MySQL-5.5.35-1.linux2.6.x86_64.rpm-bundle.tar.gz
+
+  - name: Extract archive
+    unarchive: dest=/opt/ src=/opt/MySQL-5.5.35-1.linux2.6.x86_64.rpm-bundle.tar.gz  creates=/opt/Mysql5.5 copy=no
+  - name: Install packages
+    yum:
+     name: /opt/{{ item }}
+     state: present
+    with_items:
+      - MySQL-client-5.5.35-1.linux2.6.x86_64.rpm
+      - MySQL-server-5.5.35-1.linux2.6.x86_64.rpm
+      - MySQL-shared-5.5.35-1.linux2.6.x86_64.rpm
+      - MySQL-devel-5.5.35-1.linux2.6.x86_64.rpm
+      - MySQL-embedded-5.5.35-1.linux2.6.x86_64.rpm

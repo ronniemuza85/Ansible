@@ -1,0 +1,32 @@
+---
+
+- name: Download Artifcat
+  get_url: url="http://{{NEXUS_URL}}/repository/{{RepoName}}/{{GroupId}}/{{ArtifactId}}/{{ReleaseVersion}}/{{FileName}}" dest=/home/lms/Deploy
+  when: remote=="no"
+
+- name: Download Artifcat to Jenkins
+  become: no
+  local_action: get_url url="http://{{NEXUS_URL}}/repository/{{RepoName}}/{{GroupId}}/{{ArtifactId}}/{{ReleaseVersion}}/{{FileName}}" dest=/tmp/
+  when: remote=="yes"
+
+- name: Copy Artifcat to Remote
+  copy: src=/tmp/{{FileName}} dest=/home/lms/Deploy
+  when: remote=="yes"
+
+
+- name: Remove Downloaded  Artifcat from Jenkins
+  become: no
+  local_action: file path="/tmp/{{FileName}}" state=absent
+  when: remote=="yes"
+
+- name: create Artifact dir
+  file:
+    path: "/home/lms/Deploy/{{FileName[0:-4]}}"
+    state: directory
+    mode: 0755
+- name: Unzip Artifact
+  unarchive:
+        src: "/home/lms/Deploy/{{FileName}}"
+        dest: "/home/lms/Deploy/{{FileName[0:-4]}}"
+        remote_src: True
+

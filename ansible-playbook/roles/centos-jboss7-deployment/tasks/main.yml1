@@ -1,0 +1,51 @@
+---
+
+#     - name: Copy Jboss 1.7 to Remote Server
+#       get_url: url=http://192.168.126.99:8087/repository/tools/jboss-as-7.1.1.Final.tar.gz dest=/home/lms owner=lms group=lms
+#
+#     - name: Extract the Jboss tar file
+#       unarchive: src=/home/lms/jboss-as-7.1.1.Final.tar.gz dest=/home/lms remote_src=True
+#
+#     - name: Copy properties files to Jboss server Configuration directory
+#       copy: src=roles/centos-jboss7/files/standalone.xml dest=/home/lms/jboss-as-7.1.1.Final/standalone/configuration
+# 
+#     - name: Edit PMS, EMS Datasource Information
+#       replace: dest=/home/lms/jboss-as-7.1.1.Final/standalone/configuration/standalone.xml regexp={{ item.regexp }} replace={{ item.replace }}
+#       with_items:
+#           - { regexp: 'DataSourcePMS_URL', replace: 'localhost/PMS' }
+#           - { regexp: 'PMSDB_Username', replace: 'root' }
+#           - { regexp: 'PMSDB_Password', replace: 'root' }
+#           - { regexp: 'DataSourceSLE_URL', replace: "{{sledb_host}}/{{sledb_name}}" }
+#           - { regexp: 'SLEDB_Username', replace: "{{sledb_username}}" }
+#           - { regexp: 'SLEDB_Password', replace: "{{sledb_password}}" }
+#
+#     - name: Copy standalone configuration file
+#       copy: src=roles/centos-jboss7/files/standalone.conf dest=/home/lms/jboss-as-7.1.1.Final/bin
+#
+#     - name: Copy Skilrock modules to original Jboss Directory
+#       copy: src=roles/centos-jboss7/files/skilrock dest=/home/lms/jboss-as-7.1.1.Final/modules/com
+#
+#     - name: Enter Database name in DGE Properties file
+#       lineinfile: dest=/home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/DGE/DG.properties regexp={{ item.regexp }} line={{ item.line }}
+#       with_items:
+#           - { regexp: 'databaseName=*', line: 'databaseName=DGE' }
+#           - { regexp: 'userName=*', line: 'userName=root' }
+#           - { regexp: 'hostAddress=*', line: 'hostAddress=localhost' }
+#           - { regexp: 'password=*', line: 'password=root' }
+#
+#     - name: Enter Database Credentials in DGW Properties file
+#       lineinfile: dest=/home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/DGW/DGW.properties regexp={{ item.regexp }} line={{ item.line }}
+#       with_items:
+#           - { regexp: 'databaseName=*', line: 'databaseName=DGW' }
+#           - { regexp: 'userName=*', line: 'userName=root' }
+#           - { regexp: 'hostAddress=*', line: 'hostAddress=localhost' }
+#           - { regexp: 'password=*', line: 'password=root' }
+#
+#     - name: Copy Client properties to Player Managment Properties
+#       copy: src=/home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/PMS/lagos.properties dest=/home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/PMS/PlayerMgmt.properties remote_src=True
+#
+#     - name: Copy Client En to Management En
+#       copy: src=/home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/PMS/lagos.properties dest=/home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/PMS/PlayerMgmt_en remote_src=True
+#
+     - name: Start Jboss Server
+       command: chdir=/home/lms  /bin/sh jboss-start.sh

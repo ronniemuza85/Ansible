@@ -1,0 +1,41 @@
+---
+    - name: Create 1st local users
+      user: name=lms password={{password}} state=present
+
+    - name: Insert a line after specific line
+      lineinfile: dest=/etc/ssh/sshd_config regexp='^LoginGraceTime 2m' insertafter='^#LoginGraceTime 2m' line={{ item }}
+      with_items:
+          - "PermitRootLogin no"
+          - "Allowusers lms stpl"
+   
+    - name: Restart the sshd service
+      service: name=sshd state=restarted
+
+    - name: Set the ulimits for open files
+      lineinfile: dest=/etc/security/limits.conf line={{ item }}
+      with_items:
+         - "* soft nofile 4096"
+         - "* hard nofile 20480"
+
+    - name: Insert a line in kernel file
+      lineinfile: dest=/etc/sysctl.conf line="fs.file-max = 200500"
+
+
+    - name: Allow port 80 in IPtables for Centos 6
+#      lineinfile: dest=/etc/sysconfig/iptables regexp='^-A INPUT -m state --state NEW -m tcp -p tcp --dport 22 -j ACCEPT' insertafter='^-A INPUT -m state --state NEW -m tcp -p tcp --dport 22 -j ACCEPT' line={{ item }}
+#      lineinfile: dest=/etc/sysconfig/iptables line={{ item }}
+#      with_items:
+      command: iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
+    
+    - name: Allow port 443 in IPtables for centos 6
+      command: iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 443 -j ACCEPT
+  
+    - name: Allow port 3306 in IPtables for centos 6
+      command: iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 3306 -j ACCEPT
+
+    - name: Save iptables Rules
+      command: service iptables save
+
+    - name: Restart the iptables service
+      service: name=iptables state=restarted
+   

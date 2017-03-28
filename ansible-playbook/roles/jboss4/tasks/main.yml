@@ -1,0 +1,38 @@
+- name: Download Jboss 4
+  get_url: url=http://192.168.126.99:8087/repository/tools/jboss-4.2.3.GA-jdk6.zip dest=/tmp
+
+- name: Extract archive
+  unarchive: dest=/usr/share src=/tmp/jboss-4.2.3.GA-jdk6.zip creates=jboss4 copy=no
+
+- name: Rename extraction directory
+  command: chdir=/usr/share mv jboss-4.2.3.GA jboss4 creates=jboss4
+
+- name: Copying properties files to jboss4/server/default/conf
+  copy: src=roles/jboss4/files/RMS dest=/usr/share/jboss4/server/default/conf
+
+- name: Copying server.xml to jboss4/server/default/deploy/jboss-web.deployer/
+  template: src=roles/jboss4/files/server.xml dest=/usr/share/jboss4/server/default/deploy/jboss-web.deployer/  
+
+- name: Copying the contents of {{client}}.properties to RMS.properties
+  command: cp  /usr/share/jboss4/server/default/conf/RMS/{{client}}.properties  /usr/share/jboss4/server/default/conf/RMS/RMS.properties
+
+- name: Copying the contents of {{client}}.properties to RMS_en.properties
+  command: cp  /usr/share/jboss4/server/default/conf/RMS/{{client}}_en.properties  /usr/share/jboss4/server/default/conf/RMS/RMS_en.properties
+
+- name: Copying the contents of {{client}}.properties to RMS_fr.properties
+  command: cp  /usr/share/jboss4/server/default/conf/RMS/{{client}}_fr.properties  /usr/share/jboss4/server/default/conf/RMS/RMS_fr.properties
+  when: client == "Benin"
+
+- name: Edit database name in LMS.properties
+  lineinfile: dest=/usr/share/jboss4/server/default/conf/RMS/LMS.properties regexp='databaseName=*' line='databaseName={{rmsDatabaseName}}'
+
+- name: Edit database user name in LMS.properties
+  lineinfile: dest=/usr/share/jboss4/server/default/conf/RMS/LMS.properties regexp='userName=*' line='userName={{rmsDatabaseUsername}}'
+
+- name: Edit database host in LMS.properties
+  lineinfile: dest=/usr/share/jboss4/server/default/conf/RMS/LMS.properties regexp='hostAddress=*' line='hostAddress={{rmsDatabaseHost}}'
+
+- name: Edit database password in LMS.properties
+  lineinfile: dest=/usr/share/jboss4/server/default/conf/RMS/LMS.properties regexp='password=*' line='password={{rmsDatabasePassword}}'
+
+ 

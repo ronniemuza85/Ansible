@@ -1,0 +1,52 @@
+---
+- hosts: localhost
+  connection: local
+  user: root
+#  sudo: false
+  gather_facts: false
+  serial: 1
+  vars_prompt:
+    - name: "vcenter_hostname"
+      prompt: "Enter host name"
+      private: no
+      default: "vcsa"
+    - name: "user"
+      prompt: "Enter user name"
+      private: no
+    - name: "password"
+      prompt: "Enter password"
+      private: yes
+
+  tasks:
+   - vsphere_guest:
+      vcenter_hostname: "{{vcenter_hostname}}"
+      username: "{{user}}"
+      password: "{{password}}"
+      guest: Ansibletest001
+      validate_certs: no
+      state: powered_on
+      vm_extra_config:
+        vcpu.hotadd: yes
+        mem.hotadd: yes
+        notes: This is a test VM 
+      vm_disk:
+        disk1:
+          size_gb: 20
+          type: thin
+          datastore: datastore1
+      vm_nic:
+        nic1:
+          type: vmxnet3
+          network: VM Network
+          network_type: standard
+      vm_hardware:
+        memory_mb: 2048
+        num_cpus: 2
+        osid: centos64Guest
+        scsi: paravirtual
+        vm_cdrom:
+          type: "iso"
+          iso_path: "datastore1/IOS-Images/CentOS-7-x86_64-DVD-1511.iso"
+      esxi:
+        datacenter: ha-datacenter 
+        hostname: vmware

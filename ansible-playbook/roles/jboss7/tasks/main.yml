@@ -1,0 +1,89 @@
+---
+  - name: Download Jboss7
+    get_url: url=http://192.168.126.99:8087/repository/tools/jboss-as-7.1.1.Final.tar.gz dest=/tmp
+
+  - name: Extract archive
+    unarchive: dest=/usr/share src=/tmp/jboss-as-7.1.1.Final.tar.gz creates=/usr/share/jboss7 copy=no
+
+  - name: Rename install directory
+    command: chdir=/usr/share /bin/mv jboss-as-7.1.1.Final jboss7 creates=/usr/share/jboss7
+
+  - name: Copying standalone.xml configuration file
+    template: src=roles/jboss7/files/standalone.xml dest=/usr/share/jboss7/standalone/configuration/
+
+  - name: Edit PMS datasource information in standalone.xml configuration file
+    replace: 
+      dest: /usr/share/jboss7/standalone/configuration/standalone.xml 
+      regexp: 'DataSourcePMS_URL'
+      replace: "{{pmsDatabaseHost}}/{{pmsDatabaseName}}"
+
+  - name: Edit PMS datasource username information in standalone.xml configuration file
+    replace: 
+      dest: /usr/share/jboss7/standalone/configuration/standalone.xml 
+      regexp: 'PMSDB_Username'
+      replace: "{{pmsDatabaseUsername}}"
+
+  - name: Edit PMS datasource password information in standalone.xml configuration file
+    replace: 
+      dest: /usr/share/jboss7/standalone/configuration/standalone.xml 
+      regexp: 'PMSDB_Password'
+      replace: "{{pmsDatabasePassword}}"
+
+  - name: Edit SLE datasource information in standalone.xml configuration file
+    replace: 
+      dest: /usr/share/jboss7/standalone/configuration/standalone.xml 
+      regexp: 'DataSourceSLE_URL'
+      replace: "{{sleDatabaseHost}}/{{sleDatabaseName}}"
+
+  - name: Edit SLE datasource username information in standalone.xml configuration file
+    replace: 
+      dest: /usr/share/jboss7/standalone/configuration/standalone.xml 
+      regexp: 'SLEDB_Username'
+      replace: "{{sleDatabaseUsername}}"
+
+  - name: Edit SLE datasource password information in standalone.xml configuration file
+    replace: 
+      dest: /usr/share/jboss7/standalone/configuration/standalone.xml 
+      regexp: 'SLEDB_Password'
+      replace: "{{sleDatabasePassword}}"
+
+  - name: Copying standalone.conf configuration file
+    template: src=roles/jboss7/files/standalone.conf dest=/usr/share/jboss7/bin/
+
+  - name: Move skilrock modules
+    copy:
+       src: roles/jboss7/files/skilrock
+       dest: /usr/share/jboss7/modules/com/
+
+  - name: Edit database name in DGE.properties
+    lineinfile: dest=/usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/DGE/DG.properties regexp='databaseName=*' line='databaseName={{dgeDatabaseName}}'
+
+  - name: Edit database user name in DGE.properties
+    lineinfile: dest=/usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/DGE/DG.properties regexp='userName=*' line='userName={{dgeDatabaseUsername}}'
+
+  - name: Edit database host in DGE.properties
+    lineinfile: dest=/usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/DGE/DG.properties regexp='hostAddress=*' line='hostAddress={{dgeDatabaseHost}}'
+
+  - name: Edit database password in DGE.properties
+    lineinfile: dest=/usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/DGE/DG.properties regexp='password=*' line='password={{dgeDatabasePassword}}'
+
+  - name: Edit database name in DGW.properties
+    lineinfile: dest=/usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/DGW/DGW.properties regexp='databaseName=*' line='databaseName={{dgwDatabaseName}}'
+
+  - name: Edit database user name in DGW.properties
+    lineinfile: dest=/usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/DGW/DGW.properties regexp='userName=*' line='userName={{dgwDatabaseUsername}}'
+
+  - name: Edit database host in DGW.properties
+    lineinfile: dest=/usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/DGW/DGW.properties regexp='hostAddress=*' line='hostAddress={{dgwDatabaseHost}}'
+
+  - name: Edit database password in DGW.properties
+    lineinfile: dest=/usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/DGW/DGW.properties regexp='password=*' line='password={{dgwDatabasePassword}}'
+
+  - name: Copying {{client}}.properties to  PlayerMgmt.properties
+    command: cp  /usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/PMS/{{client}}.properties /usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/PMS/PlayerMgmt.properties
+
+  - name: Copying {{client}}_en to PlayerMgmt_en
+    command: cp /usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/PMS/{{client}}_en  /usr/share/jboss7/modules/com/skilrock/configuration/main/LMS/PMS/PlayerMgmt_en
+   
+  - name: start jboss
+    command: /usr/share/jboss7/bin/standalone.sh &

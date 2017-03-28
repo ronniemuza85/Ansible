@@ -1,0 +1,45 @@
+---
+  
+    - name: Copy JRE 1.7 rpm file
+      get_url: url=http://192.168.126.99:8087/repository/tools/jre-7u80-linux-x64.rpm dest=/usr/bin/ owner=root group=root mode=0644
+      when: remote == "no"
+ 
+    - name: Copy JRE to jenkins
+      become: no
+      local_action: get_url url=http://192.168.126.99:8087/repository/tools/jre-7u80-linux-x64.rpm dest=/tmp/ 
+      when: remote == "yes"
+    - name: Copy JRE to remote server
+      copy: src=/tmp/jre-7u80-linux-x64.rpm  dest=/usr/bin/ owner=root group=root mode=0644
+      when: remote == "yes"
+
+    - name: Install the JRE rpm file
+      yum: name=/usr/bin/jre-7u80-linux-x64.rpm state=present
+    
+    - name: Make the alternative install of JRE java
+      command: alternatives --install /usr/bin/java java /usr/java/latest/bin/java 200000
+
+    - name: Make the alternative install of JRE javaws
+      command: alternatives --install /usr/bin/javaws javaws /usr/java/latest/bin/javaws 200000
+    
+    - name: Install with the location java
+      command: alternatives --install /usr/bin/java java /usr/java/jre1.7.0_80/bin/java 200000
+          
+    - name: Install with the location javaws 
+      command: alternatives --install /usr/bin/javaws javaws /usr/java/jre1.7.0_80/bin/javaws 200000
+
+    - name: Set Jre HOME
+      shell: export JAVA_HOME=/usr/java/jre1.7.0_80
+
+    - name: Remove the soft link already existed
+      file: dest=/usr/bin/java state=absent
+
+    - name: Create a soft link for default java
+      file: dest=/usr/bin/java src=/usr/java/jre1.7.0_80/bin/java state=link
+    
+    - name: Update a line in profile file 
+      action: 'lineinfile dest=/etc/profile line="export JAVA_HOME="/usr/java/jre1.7.0_80""'  
+    - name: create dirs
+      file:
+        path: /home/lms/
+        state: directory
+        mode: 0755

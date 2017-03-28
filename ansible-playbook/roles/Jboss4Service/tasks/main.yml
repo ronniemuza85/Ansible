@@ -1,0 +1,14 @@
+---
+- name: copy start up Script 
+  copy: src=roles/Jboss4Service/files/jboss4 dest=/etc/init.d/ owner=root group=root mode=755 
+- name: create link in rc3.d
+  file:
+    src: /etc/init.d/jboss4
+    dest: /etc/rc3.d/S98jboss4
+    state: link
+- name: Start the jboss service
+  command: service jboss4 start
+#- name: Enable JBoss to be started at boot
+#  service: name=jboss4  state=started
+
+

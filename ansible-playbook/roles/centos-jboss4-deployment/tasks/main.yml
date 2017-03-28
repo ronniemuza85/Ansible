@@ -1,0 +1,31 @@
+---
+
+- name: Copying properties files to jboss4/server/default/conf
+  copy: src=roles/centos-jboss4-deployment/files/RMS dest=/home/lms/jboss-4.2.3.GA/server/default/conf
+
+- name: Copying server.xml to jboss4/server/default/deploy/jboss-web.deployer/
+  template: src=roles/centos-jboss4-deployment/files/server.xml dest=/home/lms/jboss-4.2.3.GA/server/default/deploy/jboss-web.deployer/
+
+- name: Copying run.conf to jboss4/bin/
+  template: src=roles/centos-jboss4-deployment/files/run.conf dest=/home/lms/jboss-4.2.3.GA/bin/
+
+- name: Copying the contents of {{client}}.properties to RMS.properties
+  command: cp  /home/lms/jboss-4.2.3.GA/server/default/conf/RMS/{{client}}.properties  /home/lms/jboss-4.2.3.GA/server/default/conf/RMS/RMS.properties
+
+- name: Copying the contents of {{client}}.properties to RMS_en.properties
+  command: cp  /home/lms/jboss-4.2.3.GA/server/default/conf/RMS/{{client}}_en.properties  /home/lms/jboss-4.2.3.GA/server/default/conf/RMS/RMS_en.properties
+
+- name: Copying the contents of {{client}}.properties to RMS_fr.properties
+  command: cp  /home/lms/jboss-4.2.3.GA/server/default/conf/RMS/{{client}}_fr.properties  /home/lms/jboss-4.2.3.GA/server/default/conf/RMS/RMS_fr.properties
+  when: client == "Benin"
+  
+- name: Edit database name in LMS.properties
+  lineinfile: dest=/home/lms/jboss-4.2.3.GA/server/default/conf/RMS/LMS.properties regexp={{ item.regexp }} line={{ item.line }}
+  with_items:
+      - { regexp: 'databaseName=*', line: 'databaseName={{rmsDatabaseName}}' }
+      - { regexp: 'userName=*', line: 'userName={{rmsDatabaseUsername}}' }
+      - { regexp: 'hostAddress=*', line: 'hostAddress={{rmsDatabaseHost}}' }
+      - { regexp: 'password=*', line: 'password={{rmsDatabasePassword}}' }
+
+#- name: Start the Jboss4 Server
+ # command: chdir=/home/lms /bin/sh jboss4.sh

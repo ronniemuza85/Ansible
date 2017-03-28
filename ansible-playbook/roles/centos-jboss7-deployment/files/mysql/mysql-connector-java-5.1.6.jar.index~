@@ -1,0 +1,5 @@
+org/gjt/mm/mysql
+META-INF
+META-INF/services/
+com/mysql/jdbc
+

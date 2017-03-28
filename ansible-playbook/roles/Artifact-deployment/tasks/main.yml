@@ -1,0 +1,36 @@
+---
+- name: Update DGE War Name
+  replace:
+    dest: /home/lms/jboss-as-7.1.1.Final/modules/com/skilrock/configuration/main/LMS/{{item}}/{{item}}.properties
+    regexp: "^JBOSS_AS_DEPLOYMENT=*.*"
+    replace: "JBOSS_AS_DEPLOYMENT={{FileName[0:-4]}}.war"
+  with_items:
+     - DGW
+     - PMS
+  when:  ArtifactId == "DGE"
+- name: stop jboss4 service
+  command: "service jboss4 stop"
+  when: ArtifactId == "rms"
+- name: Remove old war
+  shell: "rm -rf /home/lms/jboss-4.2.3.GA/server/default/deploy/{{ArtifactId}}*" 
+  when:  ArtifactId == "rms"
+- name: Add new war
+  copy: src="/home/lms/Deploy/{{FileName[0:-4]}}/app/{{FileName[0:-4]}}.war" dest="/home/lms/jboss-4.2.3.GA/server/default/deploy/" remote_src=true
+  when:  ArtifactId == "rms"
+- name: start jboss4 server
+  command: "service jboss4 start"
+  when: ArtifactId == "rms"
+- name: Stop Jboss 7
+  command: "service jboss7 stop"
+  when: ArtifactId == "DGE"  or ArtifactId == "sportslottery" or ArtifactId == "PMS" or ArtifactId == "DrawGameWeb"
+- name: perform hot deploy
+  shell: "rm -rf /home/lms/jboss-as-7.1.1.Final/standalone/deployments/{{ArtifactId}}*.*"
+  when: ArtifactId == "DGE"  or ArtifactId == "sportslottery" or ArtifactId == "PMS" or ArtifactId == "DrawGameWeb"
+- name: Start jboss 7
+  command: "service jboss7 start"
+  when: ArtifactId == "DGE"  or ArtifactId == "sportslottery" or ArtifactId == "PMS" or ArtifactId == "DrawGameWeb"
+- name: Add new war
+  copy: src="/home/lms/Deploy/{{FileName[0:-4]}}/app/{{FileName[0:-4]}}.war" dest="/home/lms/jboss-as-7.1.1.Final/standalone/deployments/" remote_src=true
+  when: ArtifactId == "DGE"  or ArtifactId == "sportslottery" or ArtifactId == "PMS" or ArtifactId == "DrawGameWeb"
+- name: Delete old packages 
+  shell: "rm -rf /home/lms/Deploy/{{ArtifactId}}*.*"

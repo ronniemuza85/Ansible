@@ -1,0 +1,20 @@
+---  
+  - name: Copying the repo file
+    template: src=roles/filebeat/files/filebeat.repo dest=/etc/yum.repos.d/
+  
+  - name: Copying the cert file
+    template: src=roles/filebeat/files/logstash-forwarder.crt dest=/etc/pki/tls/certs/
+  
+  - name: Installing Latest version of filebeat
+    yum: pkg=filebeat state=present
+
+  - name: Rename the filebeat.yml to filebeat.yml-bak
+    command: mv /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml-bak
+  
+  - name: Copying the demo file
+    template: src=roles/filebeat/files/filebeat.yml dest=/etc/filebeat/
+              owner=root group=root mode=0644
+  
+  - name: (Enable it on System Boot)
+    service: name=filebeat enabled=yes state=started
+

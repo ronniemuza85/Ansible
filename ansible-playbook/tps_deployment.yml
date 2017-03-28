@@ -1,0 +1,17 @@
+---
+- hosts: "{{target}}-tps"
+  user: stpl
+  become: yes
+  tasks: 
+    - name: ensure directory structure is present
+      file:
+       path: /home/lms/jboss-4.2.3.GA/server/default/deploy/jboss-web.deployer/ROOT.war/TERMINAL_BUILDS/{{terminalmodel}}/SKILROCK/{{version}}
+       state: directory
+
+    - name: download repo from nexus
+      get_url: url=http://192.168.126.99:8087/repository/TPS/tps/tps/{{version}}{{build}}/tps-{{version}}{{build}}.zip dest=/tmp
+      
+    - name: unarchive
+      unarchive: dest=/tmp/ src=/tmp/tps-{{version}}{{build}}.zip  copy=no
+    - name: copy APP.bin to specied directory 
+      copy: src=/tmp/tpbuild/build/image/Upgrade/APP.bin dest=/home/lms/jboss-4.2.3.GA/server/default/deploy/jboss-web.deployer/ROOT.war/TERMINAL_BUILDS/{{terminalmodel}}/SKILROCK/{{version}} remote_src=true

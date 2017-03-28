@@ -1,0 +1,22 @@
+---
+
+- name: Copy Jboss 1.7 to Remote Server
+  get_url: url=http://192.168.126.99:8087/repository/tools/jboss-as-7.1.1.Final.tar.gz dest=/tmp
+  when: remote=="no"
+
+- name: Download Jboss 7
+  become: no
+  local_action: get_url  url=http://192.168.126.99:8087/repository/tools/jboss-as-7.1.1.Final.tar.gz dest=/tmp
+  when: remote=="yes"
+
+- name: Download Jboss 7 to target
+  copy: src=/tmp/jboss-as-7.1.1.Final.tar.gz  dest=/tmp/
+  when: remote=="yes"
+
+
+     
+- name: Extract the Jboss tar file
+  unarchive: src=/tmp/jboss-as-7.1.1.Final.tar.gz dest=/home/lms remote_src=True
+
+#     - name: Start Jboss Server
+#       command: chdir=/home/lms /bin/sh jboss-start.sh

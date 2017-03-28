@@ -1,0 +1,65 @@
+#!/bin/bash
+start() {
+  echo -n "Starting $prog: "
+  JBOSS_PIDFILE=`ps -ef | grep "jboss-4" | grep -v grep  | awk '{print$2}'`
+  if [[ ! -z $JBOSS_PIDFILE ]]; then
+    echo -n "$JBOSS_PIDFILE is already running"
+    echo
+    return 0
+  else
+   nohup /home/lms/jboss-4.2.3.GA/bin/run.sh -b 0.0.0.0  >/dev/null 2>&1 &
+   sleep 8
+  fi
+
+  echo
+  return 0
+}
+
+stop() {
+  count=0
+  JBOSS_PIDFILE=`ps -ef | grep "jboss-4" | grep -v grep  | awk '{print$2}' | head -1`
+  echo -n $"Stopping: $JBOSS_PIDFILE: "
+  if [ $JBOSS_PIDFILE ]; then
+    /home/lms/jboss-4.2.3.GA/bin/shutdown.sh -S
+    sleep 8
+    echo " Jboss4 process: `ps -ef | grep "jboss-4" | grep -v grep  | awk '{print$2}' | head -1` "
+
+  fi
+  echo
+}
+
+#########################################################################################################
+status () {
+JBOSS_PIDFILE=`ps -ef | grep "jboss-4" | grep -v grep  | awk '{print$2}'`
+  if [[ ! -z $JBOSS_PIDFILE ]]; then
+    echo -n "$JBOSS_PIDFILE is running"
+    echo
+    return 0
+  else
+   echo -n "$JBOSS_PIDFILE jboss4 is stoped"
+   sleep 0
+  fi
+}
+#######################################################################################################
+case "$1" in
+  start)
+      start
+      ;;
+  stop)
+      stop
+      ;;
+  status)
+      status
+      ;; 
+  restart)
+      $0 stop
+	sleep 8
+      $0 start
+      ;;
+  *)
+      ## If no parameters are given, print which are avaiable.
+      echo "Usage: $0 {start|stop|status|restart}"
+      exit 1
+      ;;
+esac
+

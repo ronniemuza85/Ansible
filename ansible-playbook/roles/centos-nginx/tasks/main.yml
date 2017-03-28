@@ -1,0 +1,10 @@
+---
+    - name: Install epel release latest
+      yum: name=epel-release state=present
+
+    - name: nginx web server installed
+      yum: pkg=nginx state=present update_cache=true
+    
+    - name: start nginx
+      service: name=nginx state=started
+

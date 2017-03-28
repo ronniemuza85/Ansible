@@ -1,0 +1,43 @@
+
+---
+- name: remove old db folder
+  file: 
+    path:  "/home/lms/Deploy/LIQUIBASE/{{ArtifactId}}/Liquibase/db"
+    state: absent
+- name: Copy db dir in Liquibase dir
+  command: "cp -r /home/lms/Deploy/{{FileName[0:-4]}}/db /home/lms/Deploy/LIQUIBASE/{{ArtifactId}}/Liquibase/ "
+
+- name: liquibase tag command
+  command: java -jar liquibase.jar tag "{{FileName[0:-4]}}"
+  args:
+    chdir: "/home/lms/Deploy/LIQUIBASE/{{ArtifactId}}/Liquibase"
+  tags: liquibase
+- block:
+  - name: liquibase Update
+    command: java -jar liquibase.jar update 
+    args:
+      chdir: "/home/lms/Deploy/LIQUIBASE/{{ArtifactId}}/Liquibase"
+    register: update_result
+  rescue:
+  - name: liquibase RollBack
+    command: "java -jar liquibase.jar rollback {{FileName[0:-4]}}"
+    args:
+      chdir: "/home/lms/Deploy/LIQUIBASE/{{ArtifactId}}/Liquibase"
+    register: rollback_result
+
+  - name: Result of rollback
+    debug: msg="Rollback Command Failed"
+    when: rollback_result|failed
+
+  - name: Failing Script as LiquibaseRollBack Failed
+    fail: msg="Failing Script as LiquibaseRollBack Failed"
+    when: rollback_result|failed
+
+  always:
+  - name: Result of update
+    debug: msg="Update Command Failed"
+    when: update_result|failed
+
+  - name: Failing Script as Liquibase update Failed
+    fail: msg="Failing Script as Liquibase update Failed"
+    when: update_result|failed

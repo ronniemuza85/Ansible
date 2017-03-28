@@ -1,0 +1,33 @@
+---
+#- hosts: "{{client}}:Jre" 
+#  user: stpl
+#  become: yes
+#  roles:
+#    - centos-Jre7
+
+#- hosts: "{{client}}:mysql"
+#  user: stpl
+#  become: yes
+#  roles:
+#    - mysql5.1
+
+- hosts: "{{client}}:nginx"
+  user: stpl
+  become: yes
+  roles:
+    - centos-nginx
+
+    
+#- hosts: "{{target}}:jboss4"
+#  user: stpl
+#  become: yes
+#  roles:
+#    - centos-jboss4
+#    - centos-jboss4-deployment
+#
+#- hosts: "{{target}}:jboss7"
+#  user: stpl
+#  become: yes
+#  roles:
+#    - centos-jboss7
+#    - centos-jboss7-deployment

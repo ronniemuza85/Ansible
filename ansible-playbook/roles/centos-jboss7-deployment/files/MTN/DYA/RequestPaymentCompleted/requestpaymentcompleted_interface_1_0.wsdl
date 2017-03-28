@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:header="http://www.huawei.com.cn/schema/common/v2_1" xmlns:momopayment="http://www.csapi.org/wsdl/momopayment/interface/v1_0" xmlns:momopayment_local="http://www.csapi.org/schema/momopayment/local/v1_0" xmlns:momopayment_xsd="http://www.csapi.org/schema/momopayment/data/v1_0" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="momopayment_interface" targetNamespace="http://www.csapi.org/wsdl/momopayment/interface/v1_0">
+	<wsdl:types>
+		<xsd:schema elementFormDefault="qualified" targetNamespace="http://www.csapi.org/schema/momopayment/local/v1_0">
+			<xsd:import namespace="http://www.csapi.org/schema/momopayment/data/v1_0" schemaLocation="requestpaymentcompleted_types_1_0.xsd"/>
+			<xsd:element name="requestPaymentCompleted" type="momopayment_local:requestPaymentCompleted"/>
+			<xsd:complexType name="requestPaymentCompleted">
+				<xsd:sequence>
+					<xsd:element name="ProcessingNumber" type="xsd:string"/>
+					<xsd:element name="MOMTransactionID" type="xsd:string"/>					
+					<xsd:element name="StatusCode" type="xsd:string"/>
+					<xsd:element minOccurs="0" name="StatusDesc" type="xsd:string"/>
+					<xsd:element name="ThirdPartyAcctRef" type="xsd:string"/>
+					<xsd:element minOccurs="0" name="extensionInfo" type="momopayment_xsd:NamedParameterList"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:element name="requestPaymentCompletedResponse" type="momopayment_local:requestPaymentCompletedResponse"/>
+			<xsd:complexType name="requestPaymentCompletedResponse">
+				<xsd:sequence>
+					<xsd:element name="result" type="momopayment_xsd:Result"/>
+					<xsd:element minOccurs="0" name="extensionInfo" type="momopayment_xsd:NamedParameterList"/>
+				</xsd:sequence>
+			</xsd:complexType>	
+		</xsd:schema>	
+		<xsd:schema xmlns:parlayx_common_head_xsd="http://www.huawei.com.cn/schema/common/v2_1" elementFormDefault="qualified" targetNamespace="http://www.huawei.com.cn/schema/common/v2_1">
+			<xsd:element name="NotifySOAPHeader" type="parlayx_common_head_xsd:NotifySOAPHeader"/>
+			<xsd:complexType name="NotifySOAPHeader">
+				<xsd:sequence>
+					<xsd:element minOccurs="0" name="traceUniqueID" type="xsd:string"/>															
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>		
+	</wsdl:types>
+	<wsdl:message name="NotifySOAPHeader">
+		<wsdl:part element="header:NotifySOAPHeader" name="NotifySOAPHeader"/>
+	</wsdl:message>
+	<wsdl:message name="momopayment_requestPaymentCompleted">
+		<wsdl:part element="momopayment_local:requestPaymentCompleted" name="parameters"/>
+	</wsdl:message>
+	<wsdl:message name="momopayment_requestPaymentCompletedResponse">
+		<wsdl:part element="momopayment_local:requestPaymentCompletedResponse" name="result"/>
+	</wsdl:message>
+	<wsdl:portType name="MomoPaymentPort">
+		<wsdl:operation name="requestPaymentCompleted">
+			<wsdl:input message="momopayment:momopayment_requestPaymentCompleted"/>
+			<wsdl:output message="momopayment:momopayment_requestPaymentCompletedResponse"/>
+		</wsdl:operation>
+	</wsdl:portType>
+</wsdl:definitions>
