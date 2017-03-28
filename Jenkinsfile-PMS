@@ -1,0 +1,161 @@
+node {
+   stage 'Checkout'
+
+      checkout scm
+
+   stage 'Build'
+
+         def mvnHome = tool 'M3'
+  def buildStatus=-1
+         def  commitId
+       if("${env.BRANCH_NAME}".contains("Release")) {
+
+		
+ slackSend color: "#439FE0", message: "Build Number:${BUILD_NUMBER} Started For: ${BRANCH_NAME}",  teamDomain: 'skilrock', token: 'PJZoglka3a5W4T6fZUfLwWfE'
+            buildStatus = sh returnStatus: true, script: "${mvnHome}/bin/mvn clean package -DVERSION=${env.BUILD_NUMBER} findbugs:findbugs pmd:pmd"
+
+       } else {
+
+           buildStatus=  sh  returnStatus: true, script:"${mvnHome}/bin/mvn clean package -DVERSION=SNAPSHOT findbugs:findbugs  -Dfindbugs.maxRank=1 pmd:pmd -DminimumPriority=3"
+
+       }
+sh "git rev-parse --short HEAD > .git/commit-id"                        
+commitId = readFile('.git/commit-id').trim()
+      
+     echo commitId
+         echo  "BuildStatusPrinting"
+         echo  "${buildStatus}"
+          if (buildStatus !=0){
+ if("${env.BRANCH_NAME}".contains("Release")) {
+   slackSend color: "#439FE0", message: "Build Number:${BUILD_NUMBER} Failed For: ${BRANCH_NAME}",  teamDomain: 'skilrock', token: 'PJZoglka3a5W4T6fZUfLwWfE'
+}
+httpRequest customHeaders: [[name: 'PRIVATE-TOKEN', value: "${GIT_TOKEN}"]], httpMode: 'POST', url: "${GIT_URL}${PMS_GIT_ID}/statuses/${commitId}?state=failed"
+
+       error 'Build Failed'
+           }
+     
+          if(buildStatus==0){
+if("${env.BRANCH_NAME}".contains("Release")) {
+   slackSend color: "#439FE0", message: "Build Number:${BUILD_NUMBER} Success For: ${BRANCH_NAME}",  teamDomain: 'skilrock', token: 'PJZoglka3a5W4T6fZUfLwWfE'
+}
+httpRequest customHeaders: [[name: 'PRIVATE-TOKEN', value: "${GIT_TOKEN}"]], httpMode: 'POST', url: "${GIT_URL}${PMS_GIT_ID}/statuses/${commitId}?state=success"
+          }
+
+
+
+        junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
+
+
+
+       publishHTML([allowMissing: true, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'target/site/jacoco', reportFiles: 'index.html', reportName: 'Code Coverage'])
+
+
+   if("${env.BRANCH_NAME}".contains("Release")) {
+
+   stage 'Create Package'
+
+    sh "${mvnHome}/bin/mvn assembly:single -DVERSION=${env.BUILD_NUMBER}"
+
+    def groupId = getPomValue(readFile("pom.xml"), "groupId")
+    def artifactId = getPomValue(readFile("pom.xml"), "artifactId")
+    def version= getPomValue(readFile("pom.xml"), "version")
+    def releaseVersion = version.substring(0, version.lastIndexOf("_") + 1) + "${env.BUILD_NUMBER}"
+
+
+stage ' Publish Package'
+            long start_time_5 = System.currentTimeMillis();
+            long wait_time_5 = 60000;
+            long end_time_5 = start_time_5 + wait_time_5;
+            def status_5=0
+            while (System.currentTimeMillis() < end_time_5 && status_5 != 200 )
+            {
+            try {
+
+                        nexusArtifactUploader  artifactId: "${artifactId}",
+                           credentialsId: 'Nexus',
+                           file: "target/${artifactId}-${releaseVersion}-dist.zip",
+                           groupId: "${groupId}",
+                           nexusUrl: '192.168.126.99:8087',
+                           nexusVersion: 'nexus3',
+                           protocol: 'http',
+                           repository: 'PMS',
+                           type: 'zip',
+                           version: "${releaseVersion}"
+                           def response_5 = httpRequest  timeout: 30, url: "http://${NEXUS_BASE_URL}/repository/PMS/${groupId}/${artifactId}/${releaseVersion}/${artifactId}-${releaseVersion}.zip", validResponseCodes: '200'
+                     status_5 = response_5.status
+            }
+            catch(Exception e  ){
+            sleep(1)
+            }
+            }
+            if (status_5 !=200)
+            error 'Nexus Upload Failed'
+            
+
+                           stage 'QA-Deploy'
+slackSend color: "#439FE0", message: "Build Number:${BUILD_NUMBER} Deployment Started For: ${BRANCH_NAME}",  teamDomain: 'skilrock', token: 'PJZoglka3a5W4T6fZUfLwWfE'
+                            echo 'Lagos QA Deploying...'
+
+    build job: 'AnsibleTestJob', parameters: [string(name: 'target', value: "lagosQA1"), string(name: 'NEXUS_URL', value: "${NEXUS_BASE_URL}"), string(name: 'RepoName', value: "PMS"), string(name: 'GroupId', value: "${groupId}"), string(name: 'ArtifactId', value: "${artifactId}"), string(name: 'ReleaseVersion', value: "${releaseVersion}"), string(name: 'FileName', value: "${artifactId}-${releaseVersion}.zip")]
+   // echo 'Cloud Deploying...'
+    //build job: 'AnsibleTestJob', parameters: [string(name: 'target', value: "aws-demo"),string(name: 'remote', value: "yes"),string(name: 'NEXUS_URL', value: "${NEXUS_BASE_URL}"), string(name: 'RepoName', value: "PMS"), string(name: 'GroupId', value: "${groupId}"), string(name: 'ArtifactId', value: "${artifactId}"), string(name: 'ReleaseVersion', value: "${releaseVersion}"), string(name: 'FileName', value: "${artifactId}-${releaseVersion}.zip")]
+                        sleep(60)
+            long start_time = System.currentTimeMillis();
+            long wait_time = 120000;
+            long end_time = start_time + wait_time;
+            def status=0
+            while (System.currentTimeMillis() < end_time && status != 200 )
+            {
+            try {
+            def response = httpRequest  timeout: 30, url: "http://${LAGOS_QA_LMS1}:${LAGOS_QA_JBOSS7_PORT}/PMS", validResponseCodes: '200'
+            status = response.status
+            }
+            catch(Exception e  ){
+            sleep(5)
+            }
+            }
+       if (status !=200)
+            error 'Application Not Running'
+	if(status==200){
+		 slackSend color: "#439FE0", message: "Build Number:${BUILD_NUMBER} Deployment Success For: ${BRANCH_NAME}",  teamDomain: 'skilrock', token: 'PJZoglka3a5W4T6fZUfLwWfE'
+		}
+
+       echo 'ZIM QA Deploying...'
+
+         build job: 'AnsibleTestJob', parameters: [string(name: 'target', value: "zimQA"), string(name: 'NEXUS_URL', value: "${NEXUS_BASE_URL}"), string(name: 'RepoName', value: "PMS"), string(name: 'GroupId', value: "${groupId}"), string(name: 'ArtifactId', value: "${artifactId}"), string(name: 'ReleaseVersion', value: "${releaseVersion}"), string(name: 'FileName', value: "${artifactId}-${releaseVersion}.zip")]
+     // echo 'Cloud Deploying...'
+      //build job: 'AnsibleTestJob', parameters: [string(name: 'target', value: "aws-demo"),string(name: 'remote', value: "yes"),string(name: 'NEXUS_URL', value: "${NEXUS_BASE_URL}"), string(name: 'RepoName', value: "PMS"), string(name: 'GroupId', value: "${groupId}"), string(name: 'ArtifactId', value: "${artifactId}"), string(name: 'ReleaseVersion', value: "${releaseVersion}"), string(name: 'FileName', value: "${artifactId}-${releaseVersion}.zip")]
+                          sleep(60)
+              long start_time_zim = System.currentTimeMillis();
+              long wait_time_zim = 120000;
+              long end_time_zim = start_time_zim + wait_time_zim;
+              def status_zim=0
+              while (System.currentTimeMillis() < end_time_zim && status_zim != 200 )
+              {
+              try {
+              def response = httpRequest  timeout: 30, url: "http://${ZIM_QA}:${ZIM_QA_JBOSS7_PORT}/PMS", validResponseCodes: '200'
+              status_zim = response.status
+              }
+              catch(Exception e  ){
+              sleep(5)
+              }
+              }
+         if (status_zim !=200)
+              error 'Application Not Running'
+    if(status_zim==200){
+       slackSend color: "#439FE0", message: "Build Number:${BUILD_NUMBER} Deployment Success For: ${BRANCH_NAME}",  teamDomain: 'skilrock', token: 'PJZoglka3a5W4T6fZUfLwWfE'
+      }
+
+    }
+    /* stage 'FunctionalTest'
+        node ("Windows") {
+
+        build job: 'Functional_Tests_API', parameters: [string(name: 'FeatureTag', value: '@Api'), string(name: 'ExecutionPlatform', value: 'Api'), string(name: 'TestCaseTag', value: '@Apisale'),string(name: 'ProjectTag', value: '@PMS'),string(name: 'ClientTag', value: '@ZIM')]
+} */
+}
+
+@NonCPS
+def getPomValue(text, element) {
+  def matcher = text =~ '<' + element + '>(.+)</' + element + '>'
+  matcher ? matcher[0][1] : null
+}
